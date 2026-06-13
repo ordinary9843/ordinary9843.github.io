@@ -212,3 +212,98 @@
 
   document.querySelectorAll('.stt').forEach(el => io.observe(el));
 })();
+
+/* ============================================================
+   Scroll Progress Bar
+============================================================ */
+(function initScrollProgress() {
+  const bar = document.getElementById('scroll-progress');
+  if (!bar) return;
+  function update() {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (total > 0 ? (window.scrollY / total * 100) : 0) + '%';
+  }
+  window.addEventListener('scroll', update, { passive: true });
+})();
+
+/* ============================================================
+   Custom Cursor
+============================================================ */
+(function initCursor() {
+  const cur = document.getElementById('cursor');
+  if (!cur || window.matchMedia('(pointer: coarse)').matches) return;
+
+  document.addEventListener('mousemove', e => {
+    cur.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+  });
+  document.addEventListener('mouseleave', () => { cur.style.opacity = '0'; });
+  document.addEventListener('mouseenter', () => { cur.style.opacity = '1'; });
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('is-hover', 'is-link'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('is-hover', 'is-link'));
+  });
+  document.querySelectorAll('.sk-item, .stat-cell, .sk-group').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('is-hover'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('is-hover'));
+  });
+})();
+
+/* ============================================================
+   Active Navigation Highlight
+============================================================ */
+(function initActiveNav() {
+  const links = document.querySelectorAll('.nav-links a[href^="#"]');
+  if (!links.length) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      const link = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+      if (link) link.classList.toggle('active', e.isIntersecting);
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  document.querySelectorAll('section[id]').forEach(s => io.observe(s));
+})();
+
+/* ============================================================
+   Skills Command Typing Animation
+============================================================ */
+(function initSkillsTyping() {
+  const groups = document.querySelectorAll('.sk-group');
+  if (!groups.length) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const cmd = e.target.querySelector('.sk-ls');
+      const items = e.target.querySelector('.sk-items');
+      if (!cmd) { io.unobserve(e.target); return; }
+      const final = cmd.textContent;
+      cmd.textContent = '';
+      if (items) { items.style.opacity = '0'; items.style.transition = 'opacity 0.35s'; }
+      let i = 0;
+      const t = setInterval(() => {
+        cmd.textContent = final.slice(0, ++i);
+        if (i >= final.length) {
+          clearInterval(t);
+          if (items) setTimeout(() => { items.style.opacity = '1'; }, 80);
+        }
+      }, 46);
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.4 });
+  groups.forEach(g => io.observe(g));
+})();
+
+/* ============================================================
+   Stat Fill Bars
+============================================================ */
+(function initStatBars() {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting || e.target.dataset.filled) return;
+      e.target.dataset.filled = '1';
+      e.target.style.width = (e.target.dataset.width || 0) + '%';
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.stat-fill').forEach(el => io.observe(el));
+})();
