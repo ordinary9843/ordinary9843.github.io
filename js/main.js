@@ -175,3 +175,40 @@
 
   btt?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 })();
+
+/* ============================================================
+   Section Title Scramble
+============================================================ */
+(function initScramble() {
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&';
+
+  function scramble(el) {
+    const final = el.dataset.text || el.textContent;
+    const len = final.length;
+    let frame = 0;
+    const total = 42;
+
+    function tick() {
+      el.textContent = [...final].map((ch, i) => {
+        if (ch === ' ') return ' ';
+        const reveal = (frame / total) - (i / (len * 1.6));
+        if (reveal >= 1) return ch;
+        return CHARS[Math.floor(Math.random() * CHARS.length)];
+      }).join('');
+      frame++;
+      if (frame <= total + len) requestAnimationFrame(tick);
+      else el.textContent = final;
+    }
+    tick();
+  }
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      scramble(e.target);
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.6 });
+
+  document.querySelectorAll('.stt').forEach(el => io.observe(el));
+})();
